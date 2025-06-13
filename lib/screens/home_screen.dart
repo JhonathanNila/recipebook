@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recipebook/screens/recipe_detail.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,57 +20,81 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  //Función para el modal
+
   Future<void> _showBottom(BuildContext context) {
     return showModalBottomSheet(
       context: context,
-      builder: (contexto) => Container(
-        width: MediaQuery.of(context).size.width,
-        height: 500,
-        color: Colors.white,
-        child: RecipeForm(),
+      isScrollControlled: true, // Permite que el modal ocupe más espacio
+      builder: (contexto) => Padding(
+        padding: EdgeInsets.only(
+          //Ajusta la altura considerando el teclado
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width, //Ajusta el padding
+          height: 500,
+          color: Colors.white,
+          child: const RecipeForm(),
+        ),
       ),
     );
   }
 }
 
 Widget _RecipesCard(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Container(
-      width: MediaQuery.of(context).size.width,
-      height: 125,
-      child: Card(
-        child: Row(
-          children: <Widget>[
-            Container(
-              height: 125,
-              width: 100,
-              child: ClipRRect(
-                child: Image.network(
-                  'https://static.platzi.com/media/uploads/flutter_lasana_b894f1aee1.jpg',
-                  fit: BoxFit.cover,
+  return GestureDetector(
+    // Redirige desde el home al detalle de la receta
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (
+                context,
+              ) /* Permite hacer el traspaso de Navigator.push a RecipeDetail */ =>
+                  RecipeDetail(recipeName: 'Lasagna'),
+        ),
+      ); // Al dar click en la card de la receta redirige al detalle
+    },
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: 125,
+        child: Card(
+          child: Row(
+            children: <Widget>[
+              Container(
+                height: 125,
+                width: 100,
+                child: ClipRRect(
+                  child: Image.network(
+                    'https://static.platzi.com/media/uploads/flutter_lasana_b894f1aee1.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            SizedBox(width: 26),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Lasagna',
-                  style: TextStyle(fontSize: 16, fontFamily: 'Quicksand'),
-                ),
-                SizedBox(height: 4),
-                Container(height: 2, width: 75, color: Colors.orange),
-                Text(
-                  'J. Nila',
-                  style: TextStyle(fontSize: 16, fontFamily: 'Quicksand'),
-                ),
-              ],
-            ),
-          ],
+              SizedBox(width: 26),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Lasagna',
+                    style: TextStyle(fontSize: 16, fontFamily: 'Quicksand'),
+                  ),
+                  SizedBox(height: 4),
+                  Container(height: 2, width: 75, color: Colors.orange),
+                  Text(
+                    'J. Nila',
+                    style: TextStyle(fontSize: 16, fontFamily: 'Quicksand'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -81,10 +106,17 @@ class RecipeForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+
+    final TextEditingController _recipeName = TextEditingController();
+    final TextEditingController _recipeAuthor = TextEditingController();
+    final TextEditingController _recipeIMG = TextEditingController();
+    final TextEditingController _recipeDescription = TextEditingController();
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Form(
-        //key: _formKey,
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -93,14 +125,86 @@ class RecipeForm extends StatelessWidget {
               style: TextStyle(color: Colors.orange, fontSize: 24),
             ),
             SizedBox(height: 16),
-            _buildTextField(label: 'Recipe Name'),
+            _buildTextField(
+              controller: _recipeName,
+              label: 'Recipe Name',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Introduce the recipes Name';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 16),
+            _buildTextField(
+              controller: _recipeAuthor,
+              label: 'Author',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Introduce the Author';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 16),
+            _buildTextField(
+              controller: _recipeIMG,
+              label: 'Image URL',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Introduce the Image URL';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 16),
+            _buildTextField(
+              maxLines: 4,
+              controller: _recipeDescription,
+              label: 'Recipe',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Introduce the recipes description';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    Navigator.pop(context);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  'Submit Recipe',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField({required String label}) {
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String? Function(String?) validator,
+    int maxLines = 1,
+  }) {
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
@@ -111,6 +215,8 @@ class RecipeForm extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
+      validator: validator,
+      maxLines: maxLines,
     );
   }
 }
