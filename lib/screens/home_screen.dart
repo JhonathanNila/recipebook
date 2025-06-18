@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:recipebook/providers/recipes_provider.dart';
 import 'package:recipebook/screens/recipe_detail.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -6,9 +8,33 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final recipesProvider = Provider.of<RecipesProvider>(
+      context,
+      listen: false,
+    );
+    recipesProvider.fetchRecipes();
+
     return Scaffold(
-      body: Column(
-        children: <Widget>[_RecipesCard(context), _RecipesCard(context)],
+      body: Consumer<RecipesProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.orange,
+                color: Colors.grey,
+              ),
+            );
+          } else if (provider.recipes.isEmpty) {
+            return const Center(child: Text('No recipes found'));
+          } else {
+            return ListView.builder(
+              itemCount: provider.recipes.length,
+              itemBuilder: (context, index) {
+                return _RecipesCard(context, provider.recipes[index]);
+              },
+            );
+          }
+        },
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.orange,
@@ -42,7 +68,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-Widget _RecipesCard(BuildContext context) {
+Widget _RecipesCard(BuildContext context, dynamic recipe) {
   return GestureDetector(
     // Redirige desde el home al detalle de la receta
     onTap: () {
@@ -53,7 +79,7 @@ Widget _RecipesCard(BuildContext context) {
               (
                 context,
               ) /* Permite hacer el traspaso de Navigator.push a RecipeDetail */ =>
-                  RecipeDetail(recipeName: 'Lasagna'),
+                  RecipeDetail(recipeName: recipe.name),
         ),
       ); // Al dar click en la card de la receta redirige al detalle
     },
@@ -69,10 +95,7 @@ Widget _RecipesCard(BuildContext context) {
                 height: 125,
                 width: 100,
                 child: ClipRRect(
-                  child: Image.network(
-                    'https://static.platzi.com/media/uploads/flutter_lasana_b894f1aee1.jpg',
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.network(recipe.image_link, fit: BoxFit.cover),
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -82,14 +105,17 @@ Widget _RecipesCard(BuildContext context) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Lasagna',
+                    recipe.name,
                     style: TextStyle(fontSize: 16, fontFamily: 'Quicksand'),
                   ),
                   SizedBox(height: 4),
                   Container(height: 2, width: 75, color: Colors.orange),
                   Text(
-                    'J. Nila',
-                    style: TextStyle(fontSize: 16, fontFamily: 'Quicksand'),
+                    'By: ${recipe.author}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'Quicksand',
+                    ),
                   ),
                 ],
               ),

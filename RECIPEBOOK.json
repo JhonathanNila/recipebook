@@ -5,7 +5,7 @@
   "endpointPrefix": "",
   "latency": 0,
   "port": 7701,
-  "hostname": "localhost",
+  "hostname": "192.168.100.106",
   "folders": [],
   "routes": [
     {

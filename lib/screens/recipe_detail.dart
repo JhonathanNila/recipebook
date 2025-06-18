@@ -11,7 +11,7 @@ class RecipeDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipeName),
+        title: Text(recipeName, style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.orange,
         leading: IconButton(
           onPressed: () {
